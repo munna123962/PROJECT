@@ -16,8 +16,8 @@ import Loginscreen from './myComponent/Loginscreen'
 import Addmember from './myComponent/Addmember2'
 import Viewprofile from './myComponent/Viewprofile2'
 import Myedit from './myComponent/Myedit2'
-
-
+import Business from './myComponent/Business'
+import Friend from './myComponent/Friend'
 
 
 const Stack = createStackNavigator();
@@ -36,6 +36,8 @@ const Drawerroute = () => {
         width: 250, height: 500}}>
       
       <Drawer.Screen name="Dashboard" component={Dashboard} />
+      <Drawer.Screen name="Business" component={Business} />
+      <Drawer.Screen name="Friend" component={Friend} />
       <Drawer.Screen name="Viewprofile" component={Viewprofile} />
       <Drawer.Screen name="Resetpassword" component={Resetpassword} />
       <Drawer.Screen name="Addmember" component={Addmember} />

@@ -3,56 +3,53 @@ import { View, StyleSheet, Image, Text, TextInput, TouchableOpacity, FlatList, B
 import firebaseApp from '../firebaseConfig'
 import { ScrollView } from 'react-native-gesture-handler';
 
-export default class Dashboard extends Component {
+export default class Business extends Component {
     constructor() {
         super();
         this.state = {
             search: '',
 
-            cardsData: [],
-            allCardsData:[]
+            bcards: [],
+            allbcards:[]
 
         };
     }
 
     UNSAFE_componentWillMount() {
-        this.cardsData();
-        
+        this.bcards();
+      
     }
-  
-    cards = () => {
+    bcards = () => {
         const id = firebaseApp.auth().currentUser.uid;
-        const path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers'
+        const path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers'
        // console.log('-----get cards from server')
         firebaseApp.database().ref(path).on('value', (result) => {
-            const data = JSON.parse(JSON.stringify(result))
+            const dataa = JSON.parse(JSON.stringify(result))
            // console.log('-----got data from server')
-            this.structureFlatList(data)
+            this.structureFlat(dataa)
         })
     }
-    structureFlatList = (data) => {
+    structureFlat = (dataa) => {
         //  { id: '0', name: 'MohammedMunna',job:'Electrical Engineer', cname:'Bsmarts AllIndia ', number: '9951738731'}
-        let cards = []
-        for (var indx in data) {
+        let cardsa = []
+        for (var indx in dataa) {
             // console.log('-----indx is',indx)
             //console.log(data[indx])
-            const singleCard = {
-                id: indx, name: data[indx].MemDetails.Name, job: data[indx].MemDetails.Job, cname: data[indx].MemDetails.CompanyName,
-                number: data[indx].MemDetails.ContactNumber, dp: data[indx].MemDetails['dp'], group: data[indx].MemDetails.group
+            const singleCarda = {
+                id: indx, name: dataa[indx].MemDetails.Name, job: dataa[indx].MemDetails.Job, cname: dataa[indx].MemDetails.CompanyName,
+                number: dataa[indx].MemDetails.ContactNumber, dp: dataa[indx].MemDetails['dp'], group: dataa[indx].MemDetails.group
             }
-            cards.push(singleCard)
+            cardsa.push(singleCarda)
         }
-        //console.log('--flat list structured data',cards)
-        this.setState({ cardsData: cards, allCardsData: cards })
+        console.log('--flat list structured data',cardsa)
+        this.setState({ bcards: cardsa, allbcards: cardsa })
 
     }
-    mergingTwoArrays=()=>{
-        const both = [...this.state.Fcard, ...this.state.Bcard]
-    }
+   
 
     doSearch = (searchableText) => {
         console.log('=====serach word', searchableText)
-        let fullData = this.state.allCardsData; //[{id:'',name:'',cname:''},{id:'',name:'',cname:''}]
+        let fullData = this.state.allbcards; //[{id:'',name:'',cname:''},{id:'',name:'',cname:''}]
         let result = []
         for (var i = 0; i < fullData.length; i++) {
             const user = fullData[i]
@@ -63,7 +60,7 @@ export default class Dashboard extends Component {
             }
 
         }
-        this.setState({ cardsData: result })
+        this.setState({ bcards: result })
 
     }
    /* addMobileNo = () => {
@@ -152,20 +149,7 @@ export default class Dashboard extends Component {
 
 
     }
-    UNSAFE_componentDidMount() {
-        BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
-    }
-
-    UNSAFE_componentWillUnmount() {
-        BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
-    }
-
-    handleBackButton = () => {
-
-        return true;
-
-
-    };
+  
     getScreenMaxHeight = () => {
         const h = Dimensions.get('window').height
         const w = Dimensions.get('window').width
@@ -242,13 +226,13 @@ export default class Dashboard extends Component {
 
 
                     <View style={{ flex: 1, flexDirection: 'row' }}>
-                    <TouchableOpacity style={{ flex: 0.2, backgroundColor: 'skyblue',justifyContent:'center' }} onPress={()=>{}}>
+                    <TouchableOpacity style={{ flex: 0.2, backgroundColor: 'skyblue',justifyContent:'center' }} onPress={()=>{this.props.navigation.navigate('Dashboard')}}>
                             <Text style={{fontSize:18,color:'black'}}>
                                 All
                             </Text>
 
                         </TouchableOpacity>
-                        <TouchableOpacity style={{ flex: 0.4, backgroundColor: 'orange',justifyContent:'center' }} onPress={()=>{this.props.navigation.navigate('Business')}}>
+                        <TouchableOpacity style={{ flex: 0.4, backgroundColor: 'orange',justifyContent:'center' }} >
                             <Text style={{fontSize:18,color:'black'}}>
                                 BusinessZone
                             </Text>
@@ -278,7 +262,7 @@ export default class Dashboard extends Component {
                             <ScrollView nestedScrollEnabled={true}>
                                 <FlatList
                                 
-                                    data={this.state.cardsData}
+                                    data={this.state.bcards}
                                     extraData={this.state}
                                     renderItem={({ item }) => {
                                         return (

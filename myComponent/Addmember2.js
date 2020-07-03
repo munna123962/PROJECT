@@ -11,7 +11,7 @@ export default class Addmember extends Component {
     constructor() {
         super();
         this.state = {
-            name: '', job: '', cname: '', number: '', isEdit: false, id: '', imageUrl: '', group: '', date: ''
+            name: '', job: '', cname: '', number: '', isEdit: false, id: '', imageUrl: '', group: 'Friend Zone', date: ''
         };
     }
     input = ({ name, place, ontext, value }) => {
@@ -173,9 +173,19 @@ export default class Addmember extends Component {
             }
 
             const id = firebaseApp.auth().currentUser.uid
-            
-            const path = 'Users/ListOfUsers/' + id + '/ListOfMembers/' + memid + '/MemDetails'
-            const path2 = 'Users/ListOfUsers/' + id + '/ListOfMembers/' + memid + '/images/'
+        
+            let path=''
+            let path2=''
+
+            if (!this.state.group.includes('Friend')) {
+
+                 path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/MemDetails'
+                 path2 = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/images/'
+            } else {
+                 path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/MemDetails'
+                 path2 = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/images/'
+
+            }
             const data = {
                 Name: this.state.name,
                 Job: this.state.job,
@@ -183,7 +193,7 @@ export default class Addmember extends Component {
                 ContactNumber: this.state.number,
                 group: this.state.group
             }
-
+            const existingUserData = this.props.route.params.data;
             firebaseApp.database().ref(path).update(data)
                 .then((res) => {
                     //Alert.alert('Saved Successfully')
@@ -192,18 +202,35 @@ export default class Addmember extends Component {
                     if (this.state.imageUrl.length > 5) {
                         console.log('==========')
                         const dp = this.state.imageUrl;
-                        if (!dp.includes('firebasestorage')) {
+                        if (!dp.includes('firebasestorage') || existingUserData.group != data.group  ) {
                             this.uploadImageToFb(path2, path)
                         }
                         else {
-                            Alert.alert('Saved Successfully')
-                            this.props.navigation.navigate('Dashboard')
+                            
+                            if(existingUserData.group != data.group )
+                            {
+                                const path3 = 'Users/ListOfUsers/' + id +'/'+existingUserData.group+ '/ListOfMembers/' + memid
+                                firebaseApp.database().ref(path3).remove().then(()=>{
+                                    Alert.alert('Saved Successfully')
+                                    this.props.navigation.navigate('Dashboard')
+                                }).catch(()=>{
+                                    Alert.alert('Saved Successfully but zone not changed')
+                                 this.props.navigation.navigate('Dashboard')
+                                })
+                            }
+                            
                         }
 
                     }
                     else {
-                        Alert.alert('Saved Successfully')
-                        this.props.navigation.navigate('Dashboard')
+                        const path3 = 'Users/ListOfUsers/' + id +'/'+existingUserData.group+ '/ListOfMembers/' + memid
+                                firebaseApp.database().ref(path3).remove().then(()=>{
+                                    Alert.alert('Saved Successfully')
+                                    this.props.navigation.navigate('Dashboard')
+                                }).catch(()=>{
+                                    Alert.alert('Saved Successfully but zone not changed')
+                                 this.props.navigation.navigate('Dashboard')
+                                })
                     }
 
 
@@ -240,25 +267,25 @@ export default class Addmember extends Component {
             })
 
     }
-    onRemovePress2 = async() => {
-
-
-        const memid = this.state.id
-
-
-        const id = firebaseApp.auth().currentUser.uid
-        const path = 'Users/ListOfUsers/' + id + '/ListOfMembers/' + memid + '/MemDetails'
-        try{
-        const result = await firebaseApp.database().ref(path).remove()
-        Alert.alert(this.state.name, 'Removed Successfully')
-        this.props.navigation.navigate('Dashboard')
-        }
-        catch(e){
-            Alert.alert('error in removal', error.message)
-        }
-
-
-    }
+    /* onRemovePress2 = async() => {
+ 
+ 
+         const memid = this.state.id
+ 
+ 
+         const id = firebaseApp.auth().currentUser.uid
+         const path = 'Users/ListOfUsers/' + id + '/ListOfMembers/' + memid + '/MemDetails'
+         try{
+         const result = await firebaseApp.database().ref(path).remove()
+         Alert.alert(this.state.name, 'Removed Successfully')
+         this.props.navigation.navigate('Dashboard')
+         }
+         catch(e){
+             Alert.alert('error in removal', error.message)
+         }
+ 
+ 
+     }*/
     getScreenMaxHeight = () => {
         const h = Dimensions.get('window').height
         const w = Dimensions.get('window').width
@@ -329,9 +356,9 @@ export default class Addmember extends Component {
                                     <Picker.Item label="Friend Zone" value="Friend Zone" />
                                 </Picker>
                             </View>
-                            <View style={{ flex: 0.12, flexDirection: 'row',justifyContent:'center',alignItems:'center' }}>
+                            <View style={{ flex: 0.12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
                                 <DatePicker mode="date"
-                                    style={{ width:'100%',backgroundColor:'white',color:'black',fontSize:25 }}
+                                    style={{ width: '100%', backgroundColor: 'white', color: 'black', fontSize: 25 }}
                                     placeholder="select date"
                                     format="YYYY-MM-DD"
                                     minDate="1980-05-01"
@@ -341,12 +368,12 @@ export default class Addmember extends Component {
                                     customStyles={{
                                         dateIcon: {
                                             position: 'absolute',
-                                            right:5,
+                                            right: 5,
                                             bottom: 4,
                                             marginLeft: 0
                                         },
                                         dateInput: {
-                                            marginLeft:0
+                                            marginLeft: 0
                                         }
                                         // ... You can check the source to find the other keys.
                                     }} date={this.state.date} onDateChange={(date) => { this.setState({ date: date }) }}

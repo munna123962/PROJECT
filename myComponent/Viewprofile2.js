@@ -60,7 +60,16 @@ export default class Viewprofile extends Component {
     }
     getProfileInf = () => {
         const id = firebaseApp.auth().currentUser.uid
-        const path = 'Users/ListOfUsers/' + id + '/Userdetails'
+        
+        let path = ''
+        if (!this.state.privacy.includes('Private')) {
+
+           
+            path = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
+        } else {
+           
+            path = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
+        }
 
         //firebaseApp.database().ref(path).once('value')
         firebaseApp.database().ref(path).on('value', (res) => {
@@ -187,7 +196,7 @@ export default class Viewprofile extends Component {
                             </View>
                             <View style={{ width: this.ConvertFlexToWidth(1), height: this.ConvertFlexToFixed(0.2) }}>
 
-                                <this.Details name={'Job'} dname={this.state.job} />
+                                <this.Details name={'privacy'} dname={this.state.privacy} />
 
 
                             </View>

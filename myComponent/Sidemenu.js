@@ -76,7 +76,7 @@ export default class Sidemenu extends Component {
                 <this.tab icon={require('../images/contact.png')} text={'Reset Password'} onclick={() => { this.props.moveto.navigate('Resetpassword') }} />
                 <this.tab icon={require('../images/contact.png')} text={'Signout'} onclick={() => this.signoutuser()} />
                 <this.tab icon={require('../images/contact.png')} text={'Delete Account'} onclick={() => this.deleteaccount()} />
-                
+                <this.tab icon={require('../images/contact.png')} text={'Delete Account'} onclick={() => {this.props.moveto.navigate('Searchdatabase')}} />
             </View>
         )
     }

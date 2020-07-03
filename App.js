@@ -17,6 +17,8 @@ import Dummy from './myComponent/Dummy'
 import Loading from './myComponent/Loading'
 import Myedit from './myComponent/Myedit2'
 import Phone from './myComponent/Phone'
+import Business from './myComponent/Business'
+import Friend from './myComponent/Friend'
 
 
 

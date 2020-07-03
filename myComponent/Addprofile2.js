@@ -9,7 +9,7 @@ export default class Addprofile extends Component {
     constructor() {
         super();
         this.state = {
-            name: '', job: '', cname: '', number: '', isEdit: false, id: '', imageURL: '', privacy: ''
+            name: '', job: '', cname: '', number: '', isEdit: false, id: '', imageURL: '', privacy: 'Public'
         };
     }
     input = ({ name, place, ontext, value, keyentry }) => {
@@ -17,7 +17,7 @@ export default class Addprofile extends Component {
             <View style={{ flex: 1 }}>
 
                 <View style={{ flex: 0.35 }}>
-                    <Text style={{ fontSize:this.ConvertFlexToFixed(0.025), color: 'black' }}>{name}
+                    <Text style={{ fontSize: this.ConvertFlexToFixed(0.025), color: 'black' }}>{name}
                     </Text>
 
 
@@ -34,6 +34,16 @@ export default class Addprofile extends Component {
         )
     }
     UNSAFE_componentWillMount() {
+        this.focus = this.props.navigation.addListener('focus', () => {
+            this.loadDefaultValuesOnScreenOn()
+        });
+
+
+    }
+    componentWillUnmount() {
+        this.props.navigation.removeListener(this.focus)
+    }
+    loadDefaultValuesOnScreenOn = () => {
         const existingdata = this.props.route.params.data
         console.log('data', existingdata)
         if (existingdata != null) {
@@ -62,11 +72,16 @@ export default class Addprofile extends Component {
 
 
             const id = firebaseApp.auth().currentUser.uid
+            let path2 = ''
+            let path1 = ''
+            if (!this.state.privacy.includes('Private')) {
 
-
-
-            const path2 = 'Users/ListOfUsers/' + id + '/images/'
-            const path1 = 'Users/ListOfUsers/' + id + '/Userdetails/'
+                path2 = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/images/'
+                path1 = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
+            } else {
+                path2 = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/images/'
+                path1 = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
+            }
             const data = {
                 Name: this.state.name,
                 Job: this.state.job,
@@ -78,7 +93,7 @@ export default class Addprofile extends Component {
 
             firebaseApp.database().ref(path1).update(data)
                 .then((res) => {
-
+                   
 
 
                     if (this.state.imageURL.length > 2) {
@@ -245,7 +260,7 @@ export default class Addprofile extends Component {
                     </View>
                 </View>
                 <ScrollView contentContainerStyle={{ width: '95%', height: this.ConvertFlexToFixed(1.15) }}>
-                    <View style={{ width: '95%', height: this.ConvertFlexToFixed(1.1),margin:this.ConvertFlexToFixed(0.05)  }}>
+                    <View style={{ width: '95%', height: this.ConvertFlexToFixed(1.1), margin: this.ConvertFlexToFixed(0.05) }}>
                         <View style={{ width: '95%', height: this.ConvertFlexToFixed(0.2) }}>
 
                             <this.input name={'Name'} place={'Enter Name here'} value={this.state.name} ontext={(text) => { this.setState({ name: text }) }} />
@@ -272,7 +287,7 @@ export default class Addprofile extends Component {
                         </View>
                         <View style={{ width: '95%', height: this.ConvertFlexToFixed(0.1) }}>
                             <View style={{ flex: 1, flexDirection: 'row' }}>
-                                <View style={{ flex: 0.2 ,justifyContent:'center'}}>
+                                <View style={{ flex: 0.2, justifyContent: 'center' }}>
                                     <View style={{ width: 65, height: 50 }}>
                                         <Image source={{ uri: this.state.imageURL }} style={{ width: undefined, height: undefined, flex: 1 }}
                                             resizeMode={'cover'}>
@@ -281,30 +296,30 @@ export default class Addprofile extends Component {
                                     </View>
 
                                 </View>
-                                <View style={{ flex: 0.4, alignItems: 'center',justifyContent:'center' }}>
+                                <View style={{ flex: 0.4, alignItems: 'center', justifyContent: 'center' }}>
                                     <Text style={{ fontSize: 20, color: 'black' }}>Upload</Text>
 
                                 </View>
-                                <View style={{ flex: 0.4, justifyContent: 'center',alignContent:'center' }}>
+                                <View style={{ flex: 0.4, justifyContent: 'center', alignContent: 'center' }}>
                                     <TouchableOpacity style={styles.choosefile} onPress={() => this.uploadImage()}>
                                         <Text style={{ fontSize: 20, color: 'black' }}>Choose File</Text>
                                     </TouchableOpacity>
                                 </View>
-                                </View>
-
-                            </View>
-                            <View style={{ width: '95%', height: this.ConvertFlexToFixed(0.1) }}>
-
-
-
-
-                                <TouchableOpacity onPress={() => { this.onSavePress() }} style={styles.savebutton}>
-                                    <Text style={{ fontSize: 20, color: 'black' }}>Save</Text>
-                                </TouchableOpacity>
-
                             </View>
 
                         </View>
+                        <View style={{ width: '95%', height: this.ConvertFlexToFixed(0.1) }}>
+
+
+
+
+                            <TouchableOpacity onPress={() => { this.onSavePress() }} style={styles.savebutton}>
+                                <Text style={{ fontSize: 20, color: 'black' }}>Save</Text>
+                            </TouchableOpacity>
+
+                        </View>
+
+                    </View>
 
                 </ScrollView>
 
@@ -317,14 +332,14 @@ export default class Addprofile extends Component {
     }
 }
 const styles = StyleSheet.create({
-                    container: { flex: 1, backgroundColor: 'white' },
+    container: { flex: 1, backgroundColor: 'white' },
 
     headcontainer: { flex: 1, backgroundColor: '#9746ab', flexDirection: 'row' },
 
 
 
     savebutton: { flex: 1, backgroundColor: '#9651b5', margin: 10, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-    uploadimage: { flex:1, alignItems: 'center', flexDirection: 'row' },
+    uploadimage: { flex: 1, alignItems: 'center', flexDirection: 'row' },
     choosefile: { flex: 1, backgroundColor: '#9651b5', borderRadius: 5, justifyContent: 'center', marginTop: 10, marginBottom: 10, alignItems: 'center' },
 
 }

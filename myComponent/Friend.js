@@ -3,24 +3,26 @@ import { View, StyleSheet, Image, Text, TextInput, TouchableOpacity, FlatList, B
 import firebaseApp from '../firebaseConfig'
 import { ScrollView } from 'react-native-gesture-handler';
 
-export default class Dashboard extends Component {
+export default class Friend extends Component {
     constructor() {
         super();
         this.state = {
             search: '',
 
-            cardsData: [],
-            allCardsData:[]
+            fcards:[],
+            allfcards:[]
 
         };
     }
 
     UNSAFE_componentWillMount() {
-        this.cardsData();
-        
+       
+        this.fcards()
     }
-  
-    cards = () => {
+   
+
+    
+    fcards = () => {
         const id = firebaseApp.auth().currentUser.uid;
         const path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers'
        // console.log('-----get cards from server')
@@ -43,16 +45,13 @@ export default class Dashboard extends Component {
             cards.push(singleCard)
         }
         //console.log('--flat list structured data',cards)
-        this.setState({ cardsData: cards, allCardsData: cards })
+        this.setState({ fcards: cards, allfcards: cards })
 
-    }
-    mergingTwoArrays=()=>{
-        const both = [...this.state.Fcard, ...this.state.Bcard]
     }
 
     doSearch = (searchableText) => {
         console.log('=====serach word', searchableText)
-        let fullData = this.state.allCardsData; //[{id:'',name:'',cname:''},{id:'',name:'',cname:''}]
+        let fullData = this.state.allfcards; //[{id:'',name:'',cname:''},{id:'',name:'',cname:''}]
         let result = []
         for (var i = 0; i < fullData.length; i++) {
             const user = fullData[i]
@@ -63,7 +62,7 @@ export default class Dashboard extends Component {
             }
 
         }
-        this.setState({ cardsData: result })
+        this.setState({ fcards: result })
 
     }
    /* addMobileNo = () => {
@@ -152,20 +151,7 @@ export default class Dashboard extends Component {
 
 
     }
-    UNSAFE_componentDidMount() {
-        BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
-    }
-
-    UNSAFE_componentWillUnmount() {
-        BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
-    }
-
-    handleBackButton = () => {
-
-        return true;
-
-
-    };
+ 
     getScreenMaxHeight = () => {
         const h = Dimensions.get('window').height
         const w = Dimensions.get('window').width
@@ -242,7 +228,7 @@ export default class Dashboard extends Component {
 
 
                     <View style={{ flex: 1, flexDirection: 'row' }}>
-                    <TouchableOpacity style={{ flex: 0.2, backgroundColor: 'skyblue',justifyContent:'center' }} onPress={()=>{}}>
+                    <TouchableOpacity style={{ flex: 0.2, backgroundColor: 'skyblue',justifyContent:'center' }} onPress={()=>{this.props.navigation.navigate('Dashboard')}}>
                             <Text style={{fontSize:18,color:'black'}}>
                                 All
                             </Text>
@@ -254,7 +240,7 @@ export default class Dashboard extends Component {
                             </Text>
 
                         </TouchableOpacity>
-                        <TouchableOpacity style={{ flex: 0.4, backgroundColor: 'green',justifyContent:'center' }} onPress={()=>{this.props.navigation.navigate('Friend')}}>
+                        <TouchableOpacity style={{ flex: 0.4, backgroundColor: 'green',justifyContent:'center' }} >
                         <Text style={{fontSize:18,color:'black'}}>
                                 FriendZone
                             </Text>
@@ -278,7 +264,7 @@ export default class Dashboard extends Component {
                             <ScrollView nestedScrollEnabled={true}>
                                 <FlatList
                                 
-                                    data={this.state.cardsData}
+                                    data={this.state.fcards}
                                     extraData={this.state}
                                     renderItem={({ item }) => {
                                         return (
