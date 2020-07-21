@@ -7,11 +7,12 @@ import { Picker } from '@react-native-community/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DatePicker from 'react-native-datepicker'
 
-export default class Addmember extends Component {
+
+export default class Myadd extends Component {
     constructor() {
         super();
         this.state = {
-            name: '', job: '', cname: '', number: '', isEdit: false, id: '', imageUrl: '', group: 'BusinessZone', date: ''
+            name: '', job: '', cname: '', number: '',isEdit:false, id: '', imageUrl: '', group: 'BusinessZone', date: ''
         };
     }
     input = ({ name, place, ontext, value }) => {
@@ -34,9 +35,11 @@ export default class Addmember extends Component {
 
         )
     }
-    UNSAFE_componentWillMount() {
+   componentDidMount() {
+       console.log('-----component did mount ---------------------------------------------')
         this.focus = this.props.navigation.addListener('focus', () => {
-            this.loadDefaultValuesOnScreenOn()
+           console.log('-------------------------------------------executed')
+            this.setState({ name: '', job: '', cname: '', number: '',isEdit:false, id: '', imageUrl: '', group: 'BusinessZone', date: ''})
         });
 
 
@@ -44,6 +47,7 @@ export default class Addmember extends Component {
     componentWillUnmount() {
         this.props.navigation.removeListener(this.focus)
     }
+
     uploadImageFromDevice = () => {
         const options = {
             title: 'Select Avatar',
@@ -132,45 +136,13 @@ export default class Addmember extends Component {
             });
     };
 
-    loadDefaultValuesOnScreenOn = () => {
-        const existingUserData = this.props.route.params.data
-        console.log('----forwarded data', existingUserData)
-
-        if (existingUserData != null)//if edit user this will execute
-        {
-            this.setState({
-                name: existingUserData.name,
-                job: existingUserData.job,
-                cname: existingUserData.cname,
-                number: existingUserData.number,
-                id: existingUserData.id,
-                isEdit: true,
-                imageUrl: existingUserData.dp,
-                group: existingUserData.group
-            })
-        }
-        else {// if new user this will execute
-            this.setState({
-                name: '',
-                job: '',
-                cname: '',
-                number: '',
-                id: '',
-                isEdit: false,
-                imageUrl: '',
-                group: ''
-            })
-        }
-    }
     onSavePress = () => {
         if (this.state.name.length > 2) {
-            let memid = ''
-            if (!this.state.isEdit) {
-                memid = firebaseApp.database().ref().push().key
-            }
-            else {
-                memid = this.state.id
-            }
+
+
+            const memid = firebaseApp.database().ref().push().key
+
+
 
             const id = firebaseApp.auth().currentUser.uid
 
@@ -193,97 +165,19 @@ export default class Addmember extends Component {
                 ContactNumber: this.state.number,
                 group: this.state.group
             }
-            const existingUserData = this.props.route.params.data;
+
             firebaseApp.database().ref(path).update(data)
                 .then((res) => {
-                    this.uploadImageToFb(path2, path)
-
-                    if (!this.state.isEdit) {
 
 
-                        if (this.state.imageUrl.length > 5) {
-                            console.log('==========')
+                    if (this.state.imageUrl.length > 5) {
 
-                            this.uploadImageToFb(path2, path)
-
-
-
-                        } else {
-                            Alert.alert('database Saved Successfully')
-
-                        }
-
+                        this.uploadImageToFb(path2, path)
                     } else {
-                        if (existingUserData.group == data.group) {
 
-                            if (this.state.imageUrl.length > 5) {
-
-
-                                this.uploadImageToFb(path2, path)
-
-                                Alert.alert('Edited')
-
-                            } else {
-                                Alert.alert('database Saved Successfully without change group')
-                                this.props.navigation.navigate('Dashboard')
-
-                            }
-
-                        }
-                        else {
-                            if (this.state.imageUrl.length > 5) {
-                                this.uploadImageToFb(path2, path)
-
-                                const memid = this.state.id
-
-
-                                const id = firebaseApp.auth().currentUser.uid
-                                if (!existingUserData.group.includes('Friend')) {
-                                    path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/MemDetails'
-                                } else {
-                                    path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/MemDetails'
-                                }
-                                firebaseApp.database().ref(path).remove().then((res) => {
-                                    Alert.alert(this.state.name, 'previous zone with image Removed Successfully')
-                                }).catch((error) => {
-                                    Alert.alert(' zone changed previous zone not deleted')
-                                    this.props.navigation.navigate('Dashboard')
-                                })
-                            } else {
-
-                                Alert.alert('only database updated no image there')
-                                
-
-                                const memid = this.state.id
-
-
-                                const id = firebaseApp.auth().currentUser.uid
-                                if (!existingUserData.group.includes('Friend')) {
-                                    path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/MemDetails'
-                                } else {
-                                    path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/MemDetails'
-                                }
-                                firebaseApp.database().ref(path).remove().then((res) => {
-                                    Alert.alert(this.state.name, 'previous zone Removed Successfully')
-                                }).catch((error) => {
-                                    Alert.alert(' zone changed previous zone not deleted')
-                                    this.props.navigation.navigate('Dashboard')
-                                })
-
-
-
-
-                            }
-
-
-
-                        }
-
-
-
+                        Alert.alert('database Saved Successfully without image')
+                        this.props.navigation.navigate('Dashboard')
                     }
-
-
 
                 }).catch((error) => {
 
@@ -292,62 +186,13 @@ export default class Addmember extends Component {
                 })
 
 
-
         } else {
             Alert.alert('Invalid details')
 
         }
 
     }
-    onRemovePress = () => {
 
-
-        const memid = this.state.id
-
-
-        const id = firebaseApp.auth().currentUser.uid
-
-        let path = ''
-
-
-        if (!this.state.group.includes('Friend')) {
-
-            path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/MemDetails'
-
-        } else {
-            path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/MemDetails'
-
-
-        }
-        firebaseApp.database().ref(path).remove()
-            .then((res) => {
-                Alert.alert(this.state.name, 'Removed Successfully')
-                this.props.navigation.navigate('Dashboard')
-            }).catch((error) => {
-                Alert.alert('error in removal', error.message)
-
-            })
-
-    }
-    /* onRemovePress2 = async() => {
-     
-     
-         const memid = this.state.id
-     
-     
-         const id = firebaseApp.auth().currentUser.uid
-         const path = 'Users/ListOfUsers/' + id + '/ListOfMembers/' + memid + '/MemDetails'
-         try{
-         const result = await firebaseApp.database().ref(path).remove()
-         Alert.alert(this.state.name, 'Removed Successfully')
-         this.props.navigation.navigate('Dashboard')
-         }
-         catch(e){
-             Alert.alert('error in removal', error.message)
-         }
-     
-     
-     }*/
     getScreenMaxHeight = () => {
         const h = Dimensions.get('window').height
         const w = Dimensions.get('window').width
@@ -365,12 +210,11 @@ export default class Addmember extends Component {
     }
 
 
-
-
     render() {
         return (
             <ScrollView>
                 <View style={{ width: '100%', height: this.ConvertFlexToFixed(1.2) }}>
+               
                     <View style={styles.headcontainer}>
                         <TouchableOpacity style={{ flex: 0.15, justifyContent: 'center', alignItems: 'center' }} onPress={() => { this.props.navigation.goBack() }}>
                             <View style={{ width: 30, height: 30 }}>

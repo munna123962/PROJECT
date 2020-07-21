@@ -19,7 +19,10 @@ export default class Viewprofile extends Component {
     }
     componentDidMount() {
         this.subscribeDimensions()
+      
     }
+  
+
     Details = ({ name, dname }) => {
         return (
             <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -55,33 +58,90 @@ export default class Viewprofile extends Component {
 
     }
     UNSAFE_componentWillMount() {
-        this.getProfileInf()
-
-    }
+        // console.log('enter bfm')
+         this.focus = this.props.navigation.addListener('focus', () => {
+ 
+ this. getProfileInf()
+         
+ 
+             //console.log('entered bfm')
+ 
+ 
+         });
+ 
+ 
+     }
+     componentWillUnmount() {
+         this.props.navigation.removeListener(this.focus)
+     }
+    
     getProfileInf = () => {
         const id = firebaseApp.auth().currentUser.uid
         
         let path = ''
-        if (!this.state.privacy.includes('Private')) {
-
+    
+     
            
             path = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
-        } else {
-           
-            path = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
-        }
+        
 
         //firebaseApp.database().ref(path).once('value')
         firebaseApp.database().ref(path).on('value', (res) => {
+            
             // .then((res) => {
             var data = JSON.parse(JSON.stringify(res))
             // console.log(data)
             const id = firebaseApp.auth().currentUser.uid
-
-            data = this.setState({
-                id: id, name: data.Name, job: data.Job, cname: data.CompanyName,
-                number: data.ContactNumber, dp: data.dp, privacy: data.privacy
+            console.log('======================================check',data)
+            if(data ==null)
+            {
+              this.getProfileInfprivate()
+            }else{
+             this.setState({
+                id: id,
+                name: data&& data.Name?data.Name:'', 
+                job: data&& data.Job?data.Job:'', 
+                cname: data&& data.CompanyName?data.CompanyName:'',
+                number: data&&data.ContactNumber?data.ContactNumber:'',
+                 dp: data&&data.dp?data.dp:'', privacy:data&&data.privacy?data.privacy:''
+              
             })
+        }
+            // console.log(data)
+            // })/*.catch((error) => {
+            // console.log('error', error.message)
+        })
+    
+    }
+    getProfileInfprivate = () => {
+        const id = firebaseApp.auth().currentUser.uid
+        
+        let path = ''
+    
+     
+           
+            path = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
+        
+
+        //firebaseApp.database().ref(path).once('value')
+        firebaseApp.database().ref(path).on('value', (res) => {
+            
+            // .then((res) => {
+            var data = JSON.parse(JSON.stringify(res))
+            // console.log(data)
+            const id = firebaseApp.auth().currentUser.uid
+            console.log('======================================check',data)
+            this.setState({
+                id: id,
+                name: data&& data.Name?data.Name:'', 
+                job: data&& data.Job?data.Job:'', 
+                cname: data&& data.CompanyName?data.CompanyName:'',
+                number: data&&data.ContactNumber?data.ContactNumber:'',
+                 dp: data&&data.dp?data.dp:'', privacy:data&&data.privacy?data.privacy:''
+              
+            })
+           // path2= 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
+            firebaseApp.database().ref(ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails).off
             // console.log(data)
             // })/*.catch((error) => {
             // console.log('error', error.message)
@@ -141,20 +201,31 @@ export default class Viewprofile extends Component {
 
                     </TouchableOpacity>
 
-                    <View style={{ width: this.ConvertFlexToWidth(0.7), height: this.ConvertFlexToFixed(0.1), justifyContent: 'center', marginLeft: 5 }}>
+                    <View style={{ width: this.ConvertFlexToWidth(0.55), height: this.ConvertFlexToFixed(0.1), justifyContent: 'center', marginLeft: 5 }}>
                         <Text style={{ fontSize: this.ConvertFlexToFixed(0.03), color: 'black' }}>
-                            My Profiles
+                            Profile
                     </Text>
                     </View>
+                    <TouchableOpacity style={{ width: this.ConvertFlexToWidth(0.15), height: this.ConvertFlexToFixed(0.1), justifyContent: 'center', alignItems: 'center' }} onPress={() => { }} >
+                        <View style={{ width: this.ConvertFlexToFixed(0.05), height: this.ConvertFlexToFixed(0.05) }}>
+                            <Image source={require('../images/company.png')} style={{ flex: 1, width: undefined, height: undefined }} resizeMode={'contain'}>
+
+                            </Image>
+
+                        </View>
+
+
+
+                    </TouchableOpacity>
                     <TouchableOpacity style={{ width: this.ConvertFlexToWidth(0.15), height: this.ConvertFlexToFixed(0.1), justifyContent: 'center', alignItems: 'center' }} onPress={() => {
                         const sendingData = {
                             name: this.state.name, job: this.state.job, cname: this.state.cname,
-                            number: this.state.number, dp: this.state.dp, privacy: this.state.privacy
+                            number: this.state.number, dp: this.state.dp, privacy: this.state.privacy,id:this.state.id
                         }
                         this.props.navigation.navigate('Addprofile', { data: sendingData })
                     }}>
                         <View style={{ width: this.ConvertFlexToFixed(0.05), height: this.ConvertFlexToFixed(0.05) }}>
-                            <Image source={require('../images/edit.png')} style={{ flex: 1, width: undefined, height: undefined }} resizeMode={'contain'}>
+                            <Image source={require('../images/profession.png')} style={{ flex: 1, width: undefined, height: undefined }} resizeMode={'contain'}>
 
                             </Image>
 
@@ -196,7 +267,7 @@ export default class Viewprofile extends Component {
                             </View>
                             <View style={{ width: this.ConvertFlexToWidth(1), height: this.ConvertFlexToFixed(0.2) }}>
 
-                                <this.Details name={'privacy'} dname={this.state.privacy} />
+                                <this.Details name={'Privacy'} dname={this.state.privacy} />
 
 
                             </View>
@@ -250,7 +321,7 @@ export default class Viewprofile extends Component {
                     backgroundColor: 'purple', bottom: this.ConvertFlexToFixed(0.03),
                     right: this.ConvertFlexToFixed(0.01), borderRadius: this.ConvertFlexToFixed(0.01)
                 }}>
-                    <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} onPress={()=>{this.props.navigation.navigate('Newprofile')}}>
                         <View style={{ width: this.ConvertFlexToFixed(0.05), height: this.ConvertFlexToFixed(0.05) }}>
                             <Image source={require('../images/add.png')} style={{ flex: 1, width: undefined, height: undefined }} resizeMode={'cover'}>
 

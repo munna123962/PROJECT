@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, Image, Text, TextInput, TouchableOpacity, Alert,Dimensions,ScrollView } from 'react-native';
 import firebaseApp from '../firebaseConfig';
+import Firebase from 'firebase';
+
 export default class Resetpassword extends Component {
     constructor() {
         super();
@@ -28,15 +30,68 @@ export default class Resetpassword extends Component {
 
         )
     }
-    oncpsubmitpress = () => {
-        if (this.state.oldpassword.length > 5 && this.state.ewpassword.length > 5) {
-            firebaseApp.auth().EmailAuthProvider.credential(
+    reauthenticate=(oldpassword)=>{
+        var user =firebaseApp.auth().currentUser
+        var cred=firebaseApp.auth().EmailAuthProvider.credential(user.email,this.state.oldpassword)
+        return user.reauthenticateWithCredential(cred);
+       
+
+    }
+   
+    onChangePassword=(oldPass,newPass)=>{
+        let _user = firebaseApp.auth().currentUser.uid;
+        let user=firebaseApp.auth().currentUser
+        console.log('------------------------------------onchangepass'+oldPass+'---'+newPass+'---'+user.email)
+      
+        if(_user !='' && _user !=null )
+        {
+            let credentials= Firebase.auth.EmailAuthProvider.credential(user.email,oldPass);
+            console.log(credentials)
+            user.reauthenticateWithCredential(credentials).then(()=>{
+              user.updatePassword(newPass).then(()=> {
+                
+                Alert.alert('Success','Password changed successfully',[{text:'Okay'}])
+                }).catch((error)=> {
+                  
+                  Alert.alert('Failed','Failed to change the password',[{text:'Okay'}])
+                  });
+              })
+            .catch(()=>{
+              
+              Alert.alert('Failed','Existing password is incorrect',[{text:'Okay'}])
+              })
+        }
+      }
+    oncpsubmitpress = (oldpassword,ewpassword) => {
+        if (this.state.oldpassword.length > 2 && this.state.ewpassword.length > 2) {
+        console.log('enter press')
+         this.reauthenticate(this.state.oldpassword).then(()=>{
+            console.log('enter auth')
+            firebaseApp.auth().currentUser.updatePassword(this.state.ewpassword)
+            .then((response) => {
+                console.log('updated successfully')
+                Alert.alert('updated successfull')
+            })
+            .catch((error) => {
+                Alert.alert('failure', error.message)
+                console.log('failure', error.message)
+            })
+
+         }).catch((eroor)=>{
+            Alert.alert('failure', error.message)
+         })
+
+
+
+
+
+          /*  firebaseApp.auth().EmailAuthProvider.credential(
                 "manideep.s.2021@gmail.com",
                 "123456"
             )
             firebaseApp.auth().currentUser.reauthenticateWithCredential(firebaseApp.auth.credential).then(function () {
-                console.log('----------------------------reauth success')
-                firebaseApp.auth().currentUser.updatePassword(this.state.ewpassword)
+                console.log('----------------------------reauth success')*/
+               /*  firebaseApp.auth().currentUser.updatePassword(this.state.ewpassword)
                     .then((response) => {
                         console.log('updated successfully')
                         Alert.alert('updated successfull')
@@ -45,10 +100,10 @@ export default class Resetpassword extends Component {
                         Alert.alert('failure', error.message)
                         console.log('failure', error.message)
                     })
-            }).catch(function (error) {
+          /*  }).catch(function (error) {
                 // An error happened.
                 console.log('++++++++++++++++++reauth failed',error.message)
-            });
+            });*/
 
 
         } else {
@@ -95,7 +150,7 @@ export default class Resetpassword extends Component {
 
 <View style={{flex:0.15}}>
 
-                        <TouchableOpacity style={styles.submitbutton} onPress={() => { this.oncpsubmitpress() }}>
+                        <TouchableOpacity style={styles.submitbutton} onPress={() => { this.onChangePassword(this.state.oldpassword,this.state.ewpassword) }}>
                             <Text style={{ fontSize: 20, color: 'black' }}>Submit</Text>
                         </TouchableOpacity>
                         </View>

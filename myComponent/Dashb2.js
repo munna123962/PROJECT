@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, Image, Text, TextInput, TouchableOpacity, FlatList, BackHandler, Alert, Dimensions } from 'react-native';
+import { View, StyleSheet, Image, Text, TextInput, TouchableOpacity, FlatList, BackHandler, Alert, Dimensions,Linking } from 'react-native';
 import firebaseApp from '../firebaseConfig'
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -9,18 +9,143 @@ export default class Dashboard extends Component {
         this.state = {
             search: '',
 
-            cardsData: [],
-            allCardsData:[]
+            cardsData: [],fcards:[],bcards:[],rfcards:[],rbcards:[],allCardsData:[]
+           
 
         };
     }
+  UNSAFE_componentWillMount() {
+        console.log('enter bfm')
+        this.focus = this.props.navigation.addListener('focus', () => {
+            console.log('--------check 1')
+           
+            this.fcards()
+            
+            
+ 
+    console.log('entered bfm')
+   
+ 
+        });
 
-    UNSAFE_componentWillMount() {
-        this.cardsData();
-        
+
     }
-  
-    cards = () => {
+    componentWillUnmount() {
+        this.props.navigation.removeListener(this.focus)
+    }
+   
+
+   
+    
+    bcards = () => {
+        const id = firebaseApp.auth().currentUser.uid;
+        const path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers'
+       // console.log('-----get cards from server')
+        firebaseApp.database().ref(path).on('value', (result) => {
+            const dataa = JSON.parse(JSON.stringify(result))
+            //console.log('-----got data from server')
+            this.structureFlat(dataa)
+            
+        })
+    }
+    structureFlat = (dataa) => {
+        //  { id: '0', name: 'MohammedMunna',job:'Electrical Engineer', cname:'Bsmarts AllIndia ', number: '9951738731'}
+        let cardsa = []
+        for (var indx in dataa) {
+            // console.log('-----indx is',indx)
+            //console.log(data[indx])
+            const singleCarda = {
+                id: indx, name: dataa[indx].MemDetails.Name, job: dataa[indx].MemDetails.Job, cname: dataa[indx].MemDetails.CompanyName,
+                number: dataa[indx].MemDetails.ContactNumber, dp: dataa[indx].MemDetails['dp'], group: dataa[indx].MemDetails.group
+            }
+            cardsa.push(singleCarda)
+        }
+        console.log('--flat list structured  data bcards',cardsa)
+        this.setState({ bcards: cardsa },()=>{this.getRefOfOtherUsersFcards()})
+
+    }
+
+    getRefOfOtherUsersFcards=()=>{
+        const id = firebaseApp.auth().currentUser.uid;
+        const path = 'Users/ListOfUsers/' + id + '/Friendzone/RefOfMembers'
+       // console.log('-----get cards from server')
+        firebaseApp.database().ref(path).on('value', (result) => {
+            const datafp = JSON.parse(JSON.stringify(result))
+            console.log('-----got data from f server fpath',datafp)
+            this.structureRefDataf(datafp)
+            
+        })
+    }
+    structureRefDataf = (paths) => {
+        let cards = []
+        for (var indx in paths) {
+            console.log('-----indx',indx)
+            console.log('-----indx',paths[indx])
+            firebaseApp.database().ref(paths[indx]).once('value').then((result)=>{
+                const data = JSON.parse(JSON.stringify(result))
+                const singleCard = {
+                    id: indx, 
+                    name: data.Userdetails.Name, 
+                    job: data.Userdetails.Job, 
+                    cname: data.Userdetails.CompanyName,
+                    number: data.Userdetails.ContactNumber, 
+                    dp: data.Userdetails['dp'],
+                    group: 'FriendZone'
+                }
+                cards.push(singleCard)
+                console.log('-----cards fpathdata',cards)
+            }).catch((e)=>{
+                    console.log('============================error',e)
+            })
+            
+            
+        }
+        //console.log('--flat list structured data',cards)
+        this.setState({ rfcards: cards },()=>{this.getRefOfOtherUsersBcards()})
+
+    }
+    getRefOfOtherUsersBcards=()=>{
+        const id = firebaseApp.auth().currentUser.uid;
+        const path = 'Users/ListOfUsers/' + id + '/Businesszone/RefOfMembers'
+       // console.log('-----get cards from server')
+        firebaseApp.database().ref(path).on('value', (result) => {
+            const databp = JSON.parse(JSON.stringify(result))
+            console.log('-----got path from  b refserver bpath',databp)
+            this.structureRefDataB(databp)
+            
+        })
+    }
+    structureRefDataB = (paths) => {
+        let cards = []
+        for (var indx in paths) {
+            console.log('-----indx',indx)
+            console.log('-----indx',paths[indx])
+            firebaseApp.database().ref(paths[indx]).once('value').then((result)=>{
+                const data = JSON.parse(JSON.stringify(result))
+                const singleCard = {
+                    id: indx, 
+                    name: data.Userdetails.Name, 
+                    job: data.Userdetails.Job, 
+                    cname: data.Userdetails.CompanyName,
+                    number: data.Userdetails.ContactNumber, 
+                    dp: data.Userdetails['dp'],
+                    group: 'BusinessZone'
+                }
+                cards.push(singleCard)
+                console.log('-----got pathdata from  b refserver bpathdata',cards)
+
+            }).catch((e)=>{
+                    console.log('============================error',e)
+            })
+            
+            
+        }
+        //console.log('--flat list structured data',cards)
+        this.setState({ rbcards: cards },()=>{this.mergingArrays()})
+
+    }
+
+    fcards = () => {
         const id = firebaseApp.auth().currentUser.uid;
         const path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers'
        // console.log('-----get cards from server')
@@ -28,6 +153,7 @@ export default class Dashboard extends Component {
             const data = JSON.parse(JSON.stringify(result))
            // console.log('-----got data from server')
             this.structureFlatList(data)
+            
         })
     }
     structureFlatList = (data) => {
@@ -42,12 +168,18 @@ export default class Dashboard extends Component {
             }
             cards.push(singleCard)
         }
-        //console.log('--flat list structured data',cards)
-        this.setState({ cardsData: cards, allCardsData: cards })
+        console.log('--flat list structured data fcards',cards)
+        this.setState({ fcards: cards },()=>{this.bcards()})
 
     }
-    mergingTwoArrays=()=>{
-        const both = [...this.state.Fcard, ...this.state.Bcard]
+    mergingArrays=()=>{
+        
+    
+        const bothCards = [...this.state.fcards, ...this.state.bcards, ...this.state.rfcards,...this.state.rbcards]
+        
+       
+        this.setState({cardsData:bothCards,allCardsData:bothCards})
+        console.log('--flat list structured data',bothCards)
     }
 
     doSearch = (searchableText) => {
@@ -94,58 +226,78 @@ export default class Dashboard extends Component {
         }
         return result
     }*/
+    showDp=(icon)=>{
+        if(icon== undefined || icon ==''|| icon ==null)
+        {
+            return( <Image resizeMode={'cover'} style={{ flex: 1, width: undefined, height: undefined }} source={require('../images/defaultDp.jpg')}>
+
+            </Image>)
+        }
+        else{
+           return (
+                <Image resizeMode={'cover'} style={{ flex: 1, width: undefined, height: undefined }} source={{ uri: icon }}>
+
+                </Image> 
+            )
+        }
+    }
     contacts = ({ icon, name, job, cname, number, onPress, group }) => {
         return (
-
             <TouchableOpacity onPress={() => onPress()} style={{ width: '100%', height: 160, flexDirection: 'row', borderWidth: 3, borderColor: '#F1F3F4', backgroundColor: 'white' }}>
 
-                <View style={{ flexBasis: 100, justifyContent: 'center', alignItems: 'center' }}>
-                    <View style={{ width: 80, height: 80, backgroundColor: 'green', borderRadius: 45, overflow: 'hidden' }}>
-                        <Image resizeMode={'cover'} style={{ flex: 1, width: undefined, height: undefined }} source={{ uri: icon }}>
-
-                        </Image>
-
-                    </View>
-
-                </View>
-                <View style={{ flexBasis: 260, flexGrow: 1, backgroundColor: 'white' }}>
-                    <View style={{ flex: 1 }}>
-                        <View style={{ flex: 0.2, justifyContent: 'center' }}>
-
-                            <Text style={{ fontSize: 16, color: 'orange', fontWeight: 'bold', marginLeft: 5 }}>{name}
-                            </Text>
-                        </View>
-                        <View style={{ flex: 0.2, justifyContent: 'center' }}>
-
-                            <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{job}
-                            </Text>
-                        </View>
-                        <View style={{ flex: 0.2, justifyContent: 'center' }}>
-
-                            <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{cname}
-                            </Text>
-                        </View>
-                        <View style={{ flex: 0.15, justifyContent: 'center' }}>
-
-                            <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{number}
-                            </Text>
-                        </View>
-                        <View style={{ flex: 0.15, justifyContent: 'center' }}>
-
-                            <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{group}
-                            </Text>
-                        </View>
-                        <View style={{ flex: 0.1, justifyContent: 'center' }}>
-
-                            <Text style={{ fontSize: 14, color: 'gray', fontWeight: '400', marginLeft: 5 }}>Date & Time:
-                            </Text>
-                        </View>
-                    </View>
-
+            <View style={{ flexBasis: 80, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ width: 75, height: 80, backgroundColor: 'green', borderRadius: 45, overflow: 'hidden' }}>
+                   {this.showDp(icon)}
 
                 </View>
 
-            </TouchableOpacity>
+            </View>
+            <View  style={{ flexBasis: 240, flexGrow: 1, backgroundColor: 'white' }}>
+                <View style={{ flex: 1 }}>
+                    <View style={{ flex: 0.2, justifyContent: 'center' }}>
+
+                        <Text style={{ fontSize: 16, color: 'orange', fontWeight: 'bold', marginLeft: 5 }}>{name}
+                        </Text>
+                    </View>
+                    <View style={{ flex: 0.2, justifyContent: 'center' }}>
+
+                        <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{job}
+                        </Text>
+                    </View>
+                    <View style={{ flex: 0.2, justifyContent: 'center' }}>
+
+                        <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{cname}
+                        </Text>
+                    </View>
+                    <View style={{ flex: 0.15, justifyContent: 'center' }}>
+
+                        <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{number}
+                        </Text>
+                    </View>
+                    <View style={{ flex: 0.15, justifyContent: 'center' }}>
+
+                        <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{group}
+                        </Text>
+                    </View>
+                    <View style={{ flex: 0.1, justifyContent: 'center' }}>
+
+                        <Text style={{ fontSize: 14, color: 'gray', fontWeight: '400', marginLeft: 5 }}>Date & Time:
+                        </Text>
+                    </View>
+                </View>
+
+
+            </View>
+            <View style={{ flexBasis: 40, justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ width: 35, height: 35, borderRadius: 45, overflow: 'hidden' }}>
+                    <Image resizeMode={'cover'} style={{ flex: 1, width: undefined, height: undefined }} source={require('../images/dial.png')}>
+
+                    </Image>
+
+                </View>
+            </View>
+
+        </TouchableOpacity>
         )
 
 
@@ -208,7 +360,7 @@ export default class Dashboard extends Component {
 
                         <TouchableOpacity style={{ flex: 0.15, justifyContent: 'center', alignItems: 'center' }} onPress={() => {
 
-                            this.props.navigation.navigate('Addmember', { data: null })
+                            this.props.navigation.navigate('Myadd')
                         }}>
                             <View style={{ width: this.ConvertFlexToFixed(0.05), height: this.ConvertFlexToFixed(0.05) }}>
 
@@ -287,11 +439,21 @@ export default class Dashboard extends Component {
                                                 job={item.job}
                                                 cname={item.cname}
                                                 number={item.number}
-                                                icon={item.dp}
+                                                icon={item.dp }
                                                 group={item.group}
+                                                onPress={() => {  Alert.alert('Choose Option for '+item.name,'Here',[
+                                                    {text:'Edit',onPress:()=>{this.props.navigation.navigate('Myedit',{data:item})}},
+                                                    {text:'Cancel',onPress:()=>{this.props.navigation.navigate('Business')}},
+                                                    {text:'Dial',onPress:()=>{ 
+ 
+                                                        const number = parseInt(item.number)
+                                                      let phoneNumber = 'tel:${number}';
 
-                                                onPress={() => {
-                                                    this.props.navigation.navigate('Addmember', { data: item })
+                                                      Linking.openURL(phoneNumber);
+                                                  
+                                                 
+                                                    }}])
+                                                   
                                                 }}
                                             />
                                         );
@@ -333,7 +495,7 @@ export default class Dashboard extends Component {
     }
 }
 const styles = StyleSheet.create({
-                    container: { flex: 1 },
+                    
     heading: { flex: 1, backgroundColor: 'purple', flexDirection: 'row' },
 
 

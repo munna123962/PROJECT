@@ -16,8 +16,21 @@ export default class Friend extends Component {
     }
 
     UNSAFE_componentWillMount() {
-       
-        this.fcards()
+        console.log('enter bfm')
+        this.focus = this.props.navigation.addListener('focus', () => {
+          
+           
+            this.fcards()
+ 
+    console.log('entered bfm')
+   
+ 
+        });
+
+
+    }
+    componentWillUnmount() {
+        this.props.navigation.removeListener(this.focus)
     }
    
 
@@ -194,7 +207,7 @@ export default class Friend extends Component {
 
                         <TouchableOpacity style={{ flex: 0.15, justifyContent: 'center', alignItems: 'center' }} onPress={() => {
 
-                            this.props.navigation.navigate('Addmember', { data: null })
+                            this.props.navigation.navigate('Myadd')
                         }}>
                             <View style={{ width: this.ConvertFlexToFixed(0.05), height: this.ConvertFlexToFixed(0.05) }}>
 
@@ -240,7 +253,7 @@ export default class Friend extends Component {
                             </Text>
 
                         </TouchableOpacity>
-                        <TouchableOpacity style={{ flex: 0.4, backgroundColor: 'green',justifyContent:'center' }} >
+                        <TouchableOpacity style={{ flex: 0.4, backgroundColor: 'green',justifyContent:'center' }} onPress={()=>{}}>
                         <Text style={{fontSize:18,color:'black'}}>
                                 FriendZone
                             </Text>
@@ -277,7 +290,7 @@ export default class Friend extends Component {
                                                 group={item.group}
 
                                                 onPress={() => {
-                                                    this.props.navigation.navigate('Addmember', { data: item })
+                                                    this.props.navigation.navigate('Myedit', { data: item })
                                                 }}
                                             />
                                         );

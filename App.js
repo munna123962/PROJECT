@@ -19,9 +19,13 @@ import Myedit from './myComponent/Myedit2'
 import Phone from './myComponent/Phone'
 import Business from './myComponent/Business'
 import Friend from './myComponent/Friend'
-
-
-
+import Contactlist from './myComponent/Contactlist'
+import DocuPicker from './myComponent/DocumentPicker'
+import Account from './myComponent/Account'
+import Profileview from './myComponent/Profileview'
+import Profileviewedit from './myComponent/Profileviewedit'
+import Scanner from './myComponent/Scanner'
+import Noticeboard from './myComponent/Noticeboard'
 export default class App extends Component {
     constructor() {
         super();

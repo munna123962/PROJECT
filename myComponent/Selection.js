@@ -4,7 +4,7 @@ import {Picker} from '@react-native-community/picker';
 export default class Selection extends Component{
     constructor(){
         super();
-        this.state={caste:'OC'
+        this.state={privacy:'OC'
 
         }
     }
@@ -12,10 +12,10 @@ export default class Selection extends Component{
         return(
             <View style={{flex:1,backgroundColor:'red'}}>
               <View style={{flex:0.1,backgroundColor:'white',justifyContent:'center'}}>
-                <Picker  style={{flex:0.5,backgroundColor:'skyblue',marginRight:20,marginLeft:20}} selectedValue={this.state.caste} 
-                onValueChange={(text,itemIndex)=>{this.setState({caste:text})}}>
-                <Picker.Item label="OC" value="OC"/>
-                <Picker.Item label="BC" value="BC"/>
+                <Picker  style={{flex:0.5,backgroundColor:'skyblue',marginRight:20,marginLeft:20}} selectedValue={this.state.privacy} 
+                onValueChange={(text,itemIndex)=>{this.setState({privacy:text})}}>
+                <Picker.Item label="Public" value="Public"/>
+                <Picker.Item label="Private" value="Private"/>
                   </Picker> 
 
                 

@@ -13,13 +13,17 @@ import Choosepassword from './myComponent/Choosepassword'
 import Sidemenu from './myComponent/Sidemenu'
 import Resetpassword from './myComponent/Resetpassword'
 import Loginscreen from './myComponent/Loginscreen'
-import Addmember from './myComponent/Addmember2'
 import Viewprofile from './myComponent/Viewprofile2'
 import Myedit from './myComponent/Myedit2'
 import Business from './myComponent/Business'
 import Friend from './myComponent/Friend'
-
-
+import Myadd from './myComponent/Myadd'
+import Searchdatabase from './myComponent/Searchdatabase'
+import Account from './myComponent/Account'
+import Newprofile from './myComponent/Newprofile'
+import Editprofile from './myComponent/Editprofile'
+import Mynoticeboard from './myComponent/Mynoticeboard'
+import Noticeboard from './myComponent/Noticeboard'
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const Drawerroute = () => {
@@ -33,16 +37,20 @@ const Drawerroute = () => {
       }}
       drawerType={'front'}
       drawerStyle={{
-        width: 250, height: 500}}>
+        width: 250, height: 600}}>
       
       <Drawer.Screen name="Dashboard" component={Dashboard} />
       <Drawer.Screen name="Business" component={Business} />
       <Drawer.Screen name="Friend" component={Friend} />
       <Drawer.Screen name="Viewprofile" component={Viewprofile} />
       <Drawer.Screen name="Resetpassword" component={Resetpassword} />
-      <Drawer.Screen name="Addmember" component={Addmember} />
+      <Drawer.Screen name="Myadd" component={Myadd} />
       <Drawer.Screen name="Addprofile" component={Addprofile} />
-
+      <Drawer.Screen name="Myedit" component={Myedit} />
+      <Drawer.Screen name="Searchdatabase" component={Searchdatabase} />
+      <Drawer.Screen name="Account" component={Account} />
+      <Drawer.Screen name="Mynoticeboard" component={Mynoticeboard} />
+      <Drawer.Screen name="Noticeboard" component={Noticeboard} />
     </Drawer.Navigator>
   );
 };

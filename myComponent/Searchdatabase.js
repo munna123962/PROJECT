@@ -1,33 +1,35 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, Image, Text, TextInput, TouchableOpacity, FlatList, BackHandler, Alert, Dimensions } from 'react-native';
 import firebaseApp from '../firebaseConfig'
-import { ScrollView } from 'react-native-gesture-handler';
+import RNFetchBlob from "rn-fetch-blob";
 
-export default class Dashboard extends Component {
+export default class Searchdatabase extends Component {
     constructor() {
         super();
         this.state = {
             search: '',
 
-            fcards: [], allcards: [],SearchWord:''
+            pcards: [], allpcards: [],SearchWord:'',
+            
 
         };
     }
 
-    UNSAFE_componentWillMount() {
+    componentDidMount() {
+        this.pcards()
+      
+ 
+     }
+   
 
-        this.fcards()
-    }
 
-
-
-fcards = () => {
+pcards = () => {
     const id = firebaseApp.auth().currentUser.uid;
-    const path = 'Users/ListOfUsers/Public'
+    const path = 'ProfileUsers/ListOfProfileUsers/Public'
     // console.log('-----get cards from server')
     firebaseApp.database().ref(path).on('value', (result) => {
         const data = JSON.parse(JSON.stringify(result))
-        // console.log('-----got data from server')
+        console.log('-----got data from server',data)
         this.structureFlatList(data)
     })
 }
@@ -38,19 +40,21 @@ structureFlatList = (data) => {
         // console.log('-----indx is',indx)
         //console.log(data[indx])
         const singleCard = {
-            id: indx, name: data[indx].MemDetails.Name, job: data[indx].MemDetails.Job, cname: data[indx].MemDetails.CompanyName,
-            number: data[indx].MemDetails.ContactNumber, dp: data[indx].MemDetails['dp'], group: data[indx].MemDetails.group
+            id: indx, name: data[indx].Userdetails.Name, job: data[indx].Userdetails.Job, cname: data[indx].Userdetails.CompanyName,
+            number: data[indx].Userdetails.ContactNumber, dp: data[indx].Userdetails['dp'], privacy: data[indx].Userdetails.privacy,
+            path:'ProfileUsers/ListOfProfileUsers/Public/'+indx
+        
         }
         cards.push(singleCard)
     }
     //console.log('--flat list structured data',cards)
-    this.setState({ fcards: cards, allcards: cards })
+    this.setState({ pcards: cards, allpcards: cards })
 
 }
 
 doSearch = (searchableText) => {
     console.log('=====serach word', searchableText)
-    let fullData = this.state.allcards; //[{id:'',name:'',cname:''},{id:'',name:'',cname:''}]
+    let fullData = this.state.allpcards; //[{id:'',name:'',cname:''},{id:'',name:'',cname:''}]
     let result = []
     for (var i = 0; i < fullData.length; i++) {
         const user = fullData[i]
@@ -61,7 +65,7 @@ doSearch = (searchableText) => {
         }
 
     }
-    this.setState({ fcards: result })
+    this.setState({ pcards: result })
 
 }
 
@@ -103,7 +107,7 @@ contacts = ({ icon, name, job, cname, number, onPress, group }) => {
                     </View>
                     <View style={{ flex: 0.15, justifyContent: 'center' }}>
 
-                        <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>{group}
+                        <Text style={{ fontSize: 14, color: 'gray', fontWeight: '500', marginLeft: 5 }}>public
                         </Text>
                     </View>
                     <View style={{ flex: 0.1, justifyContent: 'center' }}>
@@ -140,6 +144,43 @@ ConvertFlexToFixed = (flexvalue) => {
 
 }
 
+bzsave=(idSave,pathSave)=>{
+   /* this.setState({name:name,job:job,cname:cname,number:number,id:id,dp:dp});
+    console.log('llllllll')
+    this.onSavePress();*/
+    const id = firebaseApp.auth().currentUser.uid
+    const path = 'Users/ListOfUsers/' + id + '/Businesszone/RefOfMembers/'+idSave
+    firebaseApp.database().ref(path).set(pathSave)
+            .then((res) => {
+                Alert.alert('Saved Successfully')
+                
+            })
+            .catch((e)=>{
+                console.log('-----error saving business ref user',e)
+            })
+
+}
+
+    fzsave=(idSave,pathSave)=>{
+       /* this.setState({name:name,job:job,cname:cname,number:number,id:id,dp:dp});
+        console.log('llllllll')
+        this.onFSavePress();*/
+
+        const id = firebaseApp.auth().currentUser.uid
+    const path = 'Users/ListOfUsers/' + id + '/Friendzone/RefOfMembers/'+idSave
+    firebaseApp.database().ref(path).set(pathSave)
+            .then((res) => {
+                Alert.alert('Saved Successfully')
+            })
+            .catch((e)=>{
+                console.log('-----error saving business ref user',e)
+            })
+    }
+  //Users/ListOfUsers/VvZjrNR73dcZ6JGtMRS02NsRPEY2/Businesszone/ListOfMembers/-MB_1CEQQM7y56Uuj5n7
+    
+   
+
+                
 
 
 render() {
@@ -160,7 +201,7 @@ render() {
                     </TouchableOpacity>
                     <View style={{ flex: 0.55, justifyContent: 'center', marginLeft: 5 }}>
                         <Text style={{ fontSize: this.ConvertFlexToFixed(0.03), color: 'black' }}>
-                            Business Cards
+                          {this.state.name}
                     </Text>
                     </View>
 
@@ -171,7 +212,7 @@ render() {
             </View>
            
 
-            <ScrollView contentContainerStyle={{ width: '100%', height: this.ConvertFlexToFixed(1.1) }}>
+           
 
                 <View style={{ width: '100%', height: this.ConvertFlexToFixed(0.1) }}>
                     <TextInput style={{ borderColor: '#E8EBF0', borderWidth: 2, borderRadius: 10 }} placeholder={'Search by name'} onChangeText={(text) => { this.setState({SearchWord:text},()=>{this.doSearch(text)}) }}>
@@ -181,24 +222,29 @@ render() {
                 </View>
 
 
-                <View style={{ width: '100%', height: this.ConvertFlexToFixed(0.9) }}>
-                    <ScrollView nestedScrollEnabled={true}>
+                <View style={{ width: '100%', height: this.ConvertFlexToFixed(0.8) }}>
+                  
                         <FlatList
 
-                            data={this.state.SearchWord.length<1? []: this.state.serachthis.state.bcards}
+                            data={this.state.SearchWord.length<1? []: this.state.pcards}
                             extraData={this.state}
                             renderItem={({ item }) => {
                                 return (
                                     <this.contacts
+                                        id={item.id}
                                         name={item.name}
                                         job={item.job}
                                         cname={item.cname}
                                         number={item.number}
                                         icon={item.dp}
-                                        group={item.group}
+                                      
 
                                         onPress={() => {
-                                            this.props.navigation.navigate('Addmember', { data: item })
+                                            console.log('-----------------------------------===---------item id',item.id)
+                                            Alert.alert('Do you want to Add '+item.name,'which zone',[
+                                                {text:'BusinessZone',onPress:()=>this.bzsave(item.id,item.path,item.privacy)},
+                                                {text:'FriendZone',onPress:()=>this.fzsave(item.id,item.path,item.privacy)},
+                                                {text:'Cancel',onPress:()=>{this.props.navigation.navigate('Searchdatabase')}}])
                                         }}
                                     />
                                 );
@@ -206,14 +252,14 @@ render() {
                             }
                             }
                         />
-                    </ScrollView>
+                    
 
                 </View>
 
 
 
 
-            </ScrollView>
+           
 
 
         </View>
@@ -221,8 +267,8 @@ render() {
 }
 }
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    heading: { flex: 1, backgroundColor: 'purple', flexDirection: 'row' },
+    
+    heading: { flex:1, backgroundColor: 'purple', flexDirection: 'row' },
 
 
 }

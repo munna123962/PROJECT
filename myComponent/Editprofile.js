@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, Image, Text, TextInput, TouchableOpacity, Alert, Dimensions, ScrollView } from 'react-native';
+import { View, StyleSheet, Image, Text, TextInput, TouchableOpacity, Alert, Dimensions, ScrollView,ActivityIndicator } from 'react-native';
 import firebaseApp from '../firebaseConfig'
 import ImagePicker from 'react-native-image-picker';
 import RNFetchBlob from "rn-fetch-blob";
@@ -7,11 +7,13 @@ import { Picker } from '@react-native-community/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DatePicker from 'react-native-datepicker'
 
-export default class Addmember extends Component {
+
+export default class Myedit extends Component {
     constructor() {
         super();
         this.state = {
-            name: '', job: '', cname: '', number: '', isEdit: false, id: '', imageUrl: '', group: 'BusinessZone', date: ''
+            name: '', job: '', cname: '', number: '', id: '',
+             imageUrl: '', privacy: '', date: ''
         };
     }
     input = ({ name, place, ontext, value }) => {
@@ -73,6 +75,7 @@ export default class Addmember extends Component {
             }
         });
     }
+
 
     uploadImageToFb = (fbPath, userDetailsPath) => {
         const image = this.state.imageUrl;
@@ -136,144 +139,131 @@ export default class Addmember extends Component {
         const existingUserData = this.props.route.params.data
         console.log('----forwarded data', existingUserData)
 
-        if (existingUserData != null)//if edit user this will execute
-        {
-            this.setState({
-                name: existingUserData.name,
-                job: existingUserData.job,
-                cname: existingUserData.cname,
-                number: existingUserData.number,
-                id: existingUserData.id,
-                isEdit: true,
-                imageUrl: existingUserData.dp,
-                group: existingUserData.group
-            })
-        }
-        else {// if new user this will execute
-            this.setState({
-                name: '',
-                job: '',
-                cname: '',
-                number: '',
-                id: '',
-                isEdit: false,
-                imageUrl: '',
-                group: ''
-            })
-        }
+        this.setState({
+            name: existingUserData.name,
+            job: existingUserData.job,
+            cname: existingUserData.cname,
+            number: existingUserData.number,
+            id: existingUserData.id,
+
+            imageUrl: existingUserData.dp,
+            privacy: existingUserData.privacy
+        })
+
+
     }
     onSavePress = () => {
+        Alert.alert('Are u sure save changes','in  '+this.state.name,[{text:'Yes',onPress:()=>this.saveOnAlert()},
+        {text:'No'}])}
+    saveOnAlert=()=>{
+        
         if (this.state.name.length > 2) {
-            let memid = ''
-            if (!this.state.isEdit) {
-                memid = firebaseApp.database().ref().push().key
-            }
-            else {
-                memid = this.state.id
-            }
+
+         
+
 
             const id = firebaseApp.auth().currentUser.uid
 
             let path = ''
             let path2 = ''
 
-            if (!this.state.group.includes('Friend')) {
+            if (!this.state.privacy.includes('Private')) {
 
-                path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/MemDetails'
-                path2 = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/images/'
+                path2 = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/images/'
+                path = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
             } else {
-                path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/MemDetails'
-                path2 = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/images/'
-
+                path2 = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/images/'
+                path = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
             }
             const data = {
                 Name: this.state.name,
                 Job: this.state.job,
                 CompanyName: this.state.cname,
                 ContactNumber: this.state.number,
-                group: this.state.group
+                privacy: this.state.privacy,
+                dp:!this.state.imageUrl?'':this.state.imageUrl
             }
             const existingUserData = this.props.route.params.data;
+            console.log('--------checking full data',data)
             firebaseApp.database().ref(path).update(data)
                 .then((res) => {
-                    this.uploadImageToFb(path2, path)
-
-                    if (!this.state.isEdit) {
 
 
-                        if (this.state.imageUrl.length > 5) {
-                            console.log('==========')
 
+
+                    if (existingUserData.privacy == data.privacy) {
+                        console.log('enter in if')
+                        if (this.state.imageUrl&&this.state.imageUrl.length > 5) {
+
+                                console.log('-------into if', this.state.imageUrl)
                             this.uploadImageToFb(path2, path)
-
-
+                            this.props.navigation.navigate('Viewprofile')
+                         
 
                         } else {
-                            Alert.alert('database Saved Successfully')
-
+                            Alert.alert('without pic without change privacy')
+                            this.props.navigation.navigate('Viewprofile')
+                            console.log('mmmmmmmmmm')
                         }
 
-                    } else {
-                        if (existingUserData.group == data.group) {
+                    }
+                    else {
+                        if (this.state.imageUrl&&this.state.imageUrl.length > 5) {
+                            this.uploadImageToFb(path2, path)
+                            console.log('hhhhhhhhhhhhhhhhhh',this.state.imageUrl)
+                            
 
-                            if (this.state.imageUrl.length > 5) {
+
+                            let path=''
+                            const id = firebaseApp.auth().currentUser.uid
+
+                            if (existingUserData.privacy.includes('Private')) {
 
 
-                                this.uploadImageToFb(path2, path)
-
-                                Alert.alert('Edited')
-
+                                path = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
                             } else {
-                                Alert.alert('database Saved Successfully without change group')
+
+                                path = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
+                            }
+                            firebaseApp.database().ref(path).remove().then((res) => {
+                                Alert.alert(this.state.name, 'previous privacy with image Removed Successfully')
                                 this.props.navigation.navigate('Dashboard')
+                            }).catch((error) => {
+                                Alert.alert('privacy changed previous privacy not deleted')
+                                this.props.navigation.navigate('Dashboard')
+                            })
+                        } else {
+                            console.log('only database updated no image there')
 
-                            }
-
-                        }
-                        else {
-                            if (this.state.imageUrl.length > 5) {
-                                this.uploadImageToFb(path2, path)
-
-                                const memid = this.state.id
+                            Alert.alert('only database updated no image there')
 
 
-                                const id = firebaseApp.auth().currentUser.uid
-                                if (!existingUserData.group.includes('Friend')) {
-                                    path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/MemDetails'
-                                } else {
-                                    path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/MemDetails'
-                                }
-                                firebaseApp.database().ref(path).remove().then((res) => {
-                                    Alert.alert(this.state.name, 'previous zone with image Removed Successfully')
-                                }).catch((error) => {
-                                    Alert.alert(' zone changed previous zone not deleted')
-                                    this.props.navigation.navigate('Dashboard')
-                                })
+                          
+
+                            let path=''
+                            const id = firebaseApp.auth().currentUser.uid
+
+                            if (existingUserData.privacy.includes('Private')) {
+
+
+                                path = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
                             } else {
 
-                                Alert.alert('only database updated no image there')
-                                
-
-                                const memid = this.state.id
-
-
-                                const id = firebaseApp.auth().currentUser.uid
-                                if (!existingUserData.group.includes('Friend')) {
-                                    path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/MemDetails'
-                                } else {
-                                    path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/MemDetails'
-                                }
-                                firebaseApp.database().ref(path).remove().then((res) => {
-                                    Alert.alert(this.state.name, 'previous zone Removed Successfully')
-                                }).catch((error) => {
-                                    Alert.alert(' zone changed previous zone not deleted')
-                                    this.props.navigation.navigate('Dashboard')
-                                })
-
-
-
-
+                                path = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
                             }
+                            firebaseApp.database().ref(path).remove().then((res) => {
+                                Alert.alert(this.state.name, 'previous privacy with image Removed Successfully')
+                                this.props.navigation.navigate('Viewprofile')
+                            }).catch((error) => {
+                                Alert.alert(' privacy changed previous privacy not deleted')
+                                this.props.navigation.navigate('Viewprofile')
+                            })
+
+
+
+
+
+
 
 
 
@@ -299,36 +289,8 @@ export default class Addmember extends Component {
         }
 
     }
-    onRemovePress = () => {
 
-
-        const memid = this.state.id
-
-
-        const id = firebaseApp.auth().currentUser.uid
-
-        let path = ''
-
-
-        if (!this.state.group.includes('Friend')) {
-
-            path = 'Users/ListOfUsers/' + id + '/Businesszone/ListOfMembers/' + memid + '/MemDetails'
-
-        } else {
-            path = 'Users/ListOfUsers/' + id + '/Friendzone/ListOfMembers/' + memid + '/MemDetails'
-
-
-        }
-        firebaseApp.database().ref(path).remove()
-            .then((res) => {
-                Alert.alert(this.state.name, 'Removed Successfully')
-                this.props.navigation.navigate('Dashboard')
-            }).catch((error) => {
-                Alert.alert('error in removal', error.message)
-
-            })
-
-    }
+   
     /* onRemovePress2 = async() => {
      
      
@@ -414,8 +376,8 @@ export default class Addmember extends Component {
                             <View style={{ flex: 0.09, justifyContent: 'flex-start' }}>
                                 <Picker style={{ borderColor: '#E8EBF0', borderWidth: 2, borderRadius: 5 }} selectedValue={this.state.group}
                                     onValueChange={(text) => { this.setState({ group: text }) }}>
-                                    <Picker.Item label="BusinessZone" value="BusinessZone" />
-                                    <Picker.Item label="FriendZone" value="FriendZone" />
+                                    <Picker.Item label="Public" value="Public" />
+                                    <Picker.Item label="Private" value="Private" />
                                 </Picker>
                             </View>
                             <View style={{ flex: 0.12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
@@ -469,7 +431,7 @@ export default class Addmember extends Component {
 
 
                                 <View style={{ flex: 0.5 }}>
-                                    <TouchableOpacity onPress={() => { this.onRemovePress() }} style={{ flex: 1, backgroundColor: '#9651b5', justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 20, marginRight: 10, borderRadius: 10 }}>
+                                    <TouchableOpacity onPress={() => {  }} style={{ flex: 1, backgroundColor: '#9651b5', justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 20, marginRight: 10, borderRadius: 10 }}>
                                         <Text style={{ fontSize: 20, color: 'black' }}>Remove</Text>
                                     </TouchableOpacity>
                                 </View>

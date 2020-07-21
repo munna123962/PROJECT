@@ -9,7 +9,7 @@ export default class Addprofile extends Component {
     constructor() {
         super();
         this.state = {
-            name: '', job: '', cname: '', number: '', isEdit: false, id: '', imageURL: '', privacy: 'Public'
+            name: '', job: '', cname: '', number: '', isEdit: false, id: '', imageURL: '', privacy: ''
         };
     }
     input = ({ name, place, ontext, value, keyentry }) => {
@@ -87,39 +87,112 @@ export default class Addprofile extends Component {
                 Job: this.state.job,
                 CompanyName: this.state.cname,
                 ContactNumber: this.state.number,
+                dp: !this.state.imageURL ? '' : this.state.imageURL,
 
-                privacy: this.state.privacy
+                privacy: this.state.privacy?this.state.privacy:'Public'
             }
-
+            const existingdata = this.props.route.params.data
             firebaseApp.database().ref(path1).update(data)
                 .then((res) => {
-                   
+                    if (existingdata.privacy) {
+                        console.log('check..for data there...')
+                        if (existingdata.privacy == this.state.privacy) {
+
+                            if (this.state.imageURL.length > 2 && !this.state.imageURL.includes('firebasestorage')) {
+                                console.log('enter in if')
+
+                                this.sendImageToFb(path2, path1)
 
 
-                    if (this.state.imageURL.length > 2) {
-                        const id = this.state.imageURL
-                        if (!id.includes('firebasestorage')) {
-                            this.sendImageToFb(path2, path1)
+
+                            } else {
+                                console.log('old data present change data only without changing privacy...')
+                                Alert.alert('Saved Successfully without image')
+                                
+                                this.props.navigation.navigate('Viewprofile')
+
+                            }
                         } else {
-                            Alert.alert('Saved Successfully without change dp')
-                            this.props.navigation.navigate('Viewprofile')
+
+                            if (this.state.imageURL.length > 2 && !this.state.imageURL.includes('firebasestorage')) {
+                                this.sendImageToFb(path2, path1)
+                                console.log('enter in remove')
+                                const id = firebaseApp.auth().currentUser.uid
+
+                               
+                                let path1 = ''
+                                if (!existingdata.privacy.includes('Private')) {
+
+
+                                    path1 = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
+                                } else {
+
+                                    path1 = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
+                                }
+                                
+
+                                firebaseApp.database().ref(path1).remove().then((res) => {
+                                    Alert.alert(this.state.name, 'previous privacy with image Removed Successfully')
+                                    this.props.navigation.navigate('Viewprofile')
+                                    console.log('remove with image')
+                                }).catch((error) => {
+                                    Alert.alert(' zone changed previous zone not deleted')
+                                    this.props.navigation.navigate('Viewprofile')
+                                })
+
+
+                            } else {
+                                console.log('enter in remove without image')
+
+                                Alert.alert('Saved Successfully without image')
+                                const id = firebaseApp.auth().currentUser.uid
+                                let path1 = ''
+                                if (!existingdata.privacy.includes('Private')) {
+
+
+                                    path1 = 'ProfileUsers/ListOfProfileUsers/Public/' + id + '/Userdetails/'
+                                } else {
+
+                                    path1 = 'ProfileUsers/ListOfProfileUsers/Private/' + id + '/Userdetails/'
+                                }
+                                
+                                console.log('enter in remove')
+                                firebaseApp.database().ref(path1).remove().then((res) => {
+                                    Alert.alert(this.state.name, 'previous privacy without image Removed Successfully')
+                                    console.log(' remove')
+                                    this.props.navigation.navigate('Viewprofile')
+                                }).catch((error) => {
+                                    Alert.alert(' zone changed previous zone not deleted')
+                                    this.props.navigation.navigate('Viewprofile')
+                                    console.log('error in  in remove', error.message)
+                                })
+                            }
+                        }
+                    }   else {
+                        
+                        console.log('old data not there')
+                      
+
+                            if (this.state.imageURL.length > 2) {
+                                console.log('old data not the enter in if')
+
+                                this.sendImageToFb(path2, path1)
+
+
+
+                            } else {
+                                Alert.alert('Saved Successfully without image')
+                                this.props.navigation.navigate('Viewprofile')
+
+                            }
                         }
 
-                    } else {
-                        Alert.alert('Saved Successfully without image')
-                        this.props.navigation.navigate('Viewprofile')
+                    }).catch((error) => {
 
-                    }
-
-                })
-                // console.log('Saved Successfully')
-                //this.props.navigation.navigate('Viewprofile')
-                .catch((error) => {
-
-                    Alert.alert('Failed')
-                    console.log('Failed', error.message)
-                    // console.log('Failed',error.message)
-                })
+                        Alert.alert('Failed.....')
+                        console.log('Failed........', error.message)
+                        // console.log('Failed',error.message)
+                    })
 
 
 
@@ -163,6 +236,7 @@ export default class Addprofile extends Component {
     }
     sendImageToFb = (fbPath, userDetailsPath) => {
         const image = this.state.imageURL;
+       
         const imageName = 'Avatar'
         const originalXMLHttpRequest = window.XMLHttpRequest;
         const originalBlob = window.Blob;
@@ -280,7 +354,7 @@ export default class Addprofile extends Component {
 
                         <View style={{ width: '95%', height: this.ConvertFlexToFixed(0.1), justifyContent: 'flex-start' }}>
                             <Picker style={{ borderColor: '#E8EBF0', borderWidth: 2, borderRadius: 5 }} selectedValue={this.state.privacy}
-                                onValueChange={(text, itemIndex) => { this.setState({ privacy: text }) }}>
+                                onValueChange={(text) => { this.setState({ privacy: text }) }}>
                                 <Picker.Item label="Public" value="Public" />
                                 <Picker.Item label="Private" value="Private" />
                             </Picker>
